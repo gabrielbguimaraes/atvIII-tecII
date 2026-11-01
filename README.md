@@ -1,37 +1,35 @@
-# Cinebridge - Atividade Prática ATVIII
+# tec 2 - Atividade Prática ATVIII
 
-Implementação dos padrões de projeto estruturais (**Adapter**, **Composite** e **Decorator**) para o microsserviço de recomendação e orquestração da plataforma **Cinebridge**, conforme especificação acadêmica do Prof. Dr. Eng. Gerson Penha.
 
 ---
 
-## 1. Visão Geral da Arquitetura
+## 1. Visão Geral
 
-O sistema aborda a complexidade arquitetural decorrente do crescimento da plataforma Cinebridge, combatendo anti-padrões e separando responsabilidades através de três padrões estruturais do GoF:
 
-1. **Adapter (Integração Externa)**:
+1. **Adapter**:
    - **Armazenamento**: Interface `AdaptadorArmazenamento` implementada por `AdaptadorS3`, `AdaptadorGoogleCloud` e `AdaptadorLocal`, adaptando o subsistema `ArmazenamentoExterno`.
    - **Pagamento**: Interface `AdaptadorPagamento` implementada por `AdaptadorStripe`, `AdaptadorPagSeguro` e `AdaptadorPayPal`, adaptando o subsistema `GatewayPagamento`.
    - **Profissionais**: Interface `AdaptadorProfissional` implementada por `AdaptadorLinkedIn`, `AdaptadorIndeed` e `AdaptadorInterno`, convertendo dados heterogêneos de `ApiProfissionalExterna` em instâncias do modelo de domínio `Profissional`.
 
-2. **Composite (Hierarquia de Serviços do Projeto)**:
+2. **Composite**:
    - Interface `ServicoProjeto` uniformiza o tratamento de serviços atômicos (`ServicoAtomico`) e árvores de pacotes compostos (`PacoteServico`).
    - A classe `Projeto` delega o cálculo de custo (`calcularCustoTotal()`), prazo (`obterPrazoTotal()`) e validação estrutural (`validarEstrutura()`) recursivamente para seu `servicoPrincipal`.
 
-3. **Decorator (Funcionalidades Transversais de Recomendação)**:
+3. **Decorator**:
    - Baseado no contrato `RecomendacaoStrategy` e no componente concreto `RecomendadorBase`.
    - Decoradores concretos combináveis em qualquer ordem:
      - `CacheDecorator`: armazena recomendações em memória e evita reprocessamento.
      - `AuditoriaDecorator`: registra métricas de tempo de execução, timestamp e volume avaliado.
      - `CompressaoDecorator`: serializa e comprime via `zlib.gzipSync` o payload para otimização de rede mantendo o contrato de retorno.
 
-4. **Orquestrador Central (`SistemaRecomendacao`)**:
+4. **`SistemaRecomendacao`**:
    - Coordena adaptadores configuráveis em tempo de execução via `configurarAdaptadores()`.
    - Suporta troca e montagem dinâmica da pilha de decoradores via `configurarPilhaDecoradores()`.
    - Executa o fluxo ponta a ponta: validação composta -> busca externa -> recomendação decorada -> formação da `Equipe` -> persistência em storage -> liquidação/pré-autorização financeira.
 
 ---
 
-## 2. Diagrama de Classes da Arquitetura (Mermaid)
+## 2. Diagrama de Classes da Arquitetura em mermaid
 
 ```mermaid
 classDiagram
@@ -220,85 +218,30 @@ classDiagram
     SistemaRecomendacao --> RecomendacaoStrategy
 ```
 
----
-
-## 3. Requisitos e Compatibilidade
-
-- **Node.js**: v20.x, v22.x ou v24.x LTS (compatível com Linux Ubuntu 24.04.03+ e Windows 10+).
-- **TypeScript**: modo estrito (`"strict": true`).
-- **Gerenciador de Pacotes**: npm 10+.
 
 ---
 
-## 4. Instruções de Instalação, Build e Testes
+## 3. Instruções de Instalação, Build e Testes
 
-### 4.1 Instalação das dependências
+### 3.1 Instalação das dependências
 ```bash
 npm install
 ```
 
-### 4.2 Compilação (TypeScript para JavaScript CommonJS + Typings)
+### 3.2 Compilação (TypeScript para JavaScript CommonJS + Typings)
 ```bash
 npm run build
 ```
 Os artefatos compilados serão gerados no diretório `dist/`.
 
-### 4.3 Execução dos Testes Automatizados (Jest)
+### 3.3 Execução dos Testes Automatizados (Jest)
 ```bash
 npm test
 ```
 
-### 4.4 Execução dos Testes com Relatório de Cobertura
+### 3.4 Execução dos Testes com Relatório de Cobertura
 ```bash
 npm run test:coverage
 ```
 
 ---
-
-## 5. Estrutura do Projeto
-
-```
-.
-├── src/
-│   ├── easterEgg.ts                          # Fórmula da potência de Planck: p_P = c^5 / (hG^2)
-│   ├── index.ts                              # Exportação pública unificada
-│   ├── SistemaRecomendacao.ts                # Orquestrador central integrado aos 3 padrões
-│   ├── models/                               # Domínio da plataforma Cinebridge
-│   │   ├── Papel.ts
-│   │   ├── Competencia.ts
-│   │   ├── Avaliacao.ts
-│   │   ├── Profissional.ts
-│   │   ├── MembroEquipe.ts
-│   │   ├── Equipe.ts
-│   │   ├── Projeto.ts
-│   │   └── index.ts
-│   └── patterns/
-│       ├── adapter/                          # Padrão Estrutural Adapter
-│       │   ├── storage/                      # S3, Google Cloud e Local
-│       │   ├── payment/                      # Stripe, PagSeguro e PayPal
-│       │   ├── professional/                 # LinkedIn, Indeed e Interno
-│       │   └── index.ts
-│       ├── composite/                        # Padrão Estrutural Composite
-│       │   ├── ServicoProjeto.ts
-│       │   ├── ServicoAtomico.ts
-│       │   ├── PacoteServico.ts
-│       │   └── index.ts
-│       └── decorator/                        # Padrão Estrutural Decorator
-│           ├── RecomendacaoStrategy.ts
-│           ├── RecomendadorBase.ts
-│           ├── RecomendacaoDecorator.ts
-│           ├── CacheDecorator.ts
-│           ├── AuditoriaDecorator.ts
-│           ├── CompressaoDecorator.ts
-│           └── index.ts
-├── tests/
-│   ├── adapter.test.ts                       # Testes de integração do Adapter
-│   ├── composite.test.ts                     # Testes de hierarquia e validação do Composite
-│   ├── decorator.test.ts                     # Testes de cache, auditoria, compressão e composição
-│   ├── sistemaRecomendacao.test.ts           # Testes de orquestração e fluxos completos
-│   └── easterEgg.test.ts                     # Validação da fórmula de potência de Planck
-├── jest.config.js
-├── package.json
-├── tsconfig.json
-└── README.md
-```
